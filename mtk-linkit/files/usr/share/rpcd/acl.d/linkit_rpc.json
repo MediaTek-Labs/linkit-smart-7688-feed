@@ -1,0 +1,24 @@
+{
+	"linkit": {
+		"description": "Access group which allows anything",
+		"read": {
+			"cgi-io": [ "backup", ],
+			"ubus": {
+				"system": [ "board" ],
+				"session": [ "grant", "destroy" ],
+				"iwinfo": [ "scan", "info" ],
+				"network.interface": [ "status" ],
+			},
+			"uci": [ "network", "wireless", "system" ]
+		},
+		"write": {
+			"cgi-io": [ "upload", ],
+			"ubus": {
+				"session": [ "grant", "logout" ],
+				"uci": [ "get", "set", "apply", "reload_config" ],
+				"rpc-sys": [ "*" ],
+			},
+			"uci": [ "network", "wireless", "system" ]
+		}
+	}
+}

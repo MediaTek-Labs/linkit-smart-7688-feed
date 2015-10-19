@@ -1,0 +1,33 @@
+#!/bin/sh
+
+[ "$(uci get system.@system[-1].linkit_firstboot)" = "1" ] && return 0
+
+. /lib/ramips.sh
+board=$(ramips_board_name)
+
+[ "$board" = "linkits7688d" ] || {
+	rm -f /etc/avahi/services/arduino.service
+	return 0
+}
+
+[ -n "$(grep -q linuxgpio /etc/avrdude.conf)" ] && exit 0
+
+MOSI=16
+MISO=17
+REV="$(dd bs=1 skip=1043 count=1 if=/dev/mtd2 2> /dev/null)"
+[ "${REV}" -lt "3" ] && {
+	MOSI=17
+	MISO=16
+}
+
+cat << EOF >> /etc/avrdude.conf
+programmer
+	id    = "linuxgpio";
+	desc  = "Use sysfs interface to bitbang GPIO lines";
+	type  = "linuxgpio";
+	reset = 3;
+	sck   = 15;
+	mosi  = ${MOSI};
+	miso  = ${MISO};
+;
+EOF

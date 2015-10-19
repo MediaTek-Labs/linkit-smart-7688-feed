@@ -1,0 +1,30 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2015 OpenWrt.org
+
+START=10
+
+start()
+{
+	# ugly hack alert - this is required to override the luci index.html file
+	[ -f /www/index_7688.html ] && {
+		cp /www/index_7688.html /www/index.html
+		rm /www/index_7688.html
+	}
+
+	# sync the uboot envs wifi config with the uci wifi config
+	SEQ=`fw_printenv -n wifi_seq`
+	[ -n "${SEQ}" ] || return
+	USEQ=`uci get wireless.ap.seq`
+	[ -z "${USEQ}" ] && USEQ=0
+	[ "${USEQ}" -lt "${SEQ}" ] && {
+		SSID=`fw_printenv -n wifi_ssid`
+		KEY=`fw_printenv -n wifi_key`
+		[ -n "${SSID}" ] && uci set wireless.ap.ssid="${SSID}"
+		[ -n "${KEY}" ] && {
+			uci set wireless.ap.encryption='psk2'
+			uci set wireless.ap.key="${KEY}"
+		}
+		uci set wireless.ap.seq="${SEQ}"
+		uci commit wireless
+	}
+}

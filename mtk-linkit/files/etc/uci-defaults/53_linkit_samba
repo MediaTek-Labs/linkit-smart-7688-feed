@@ -1,0 +1,15 @@
+#!/bin/sh
+
+[ "$(uci get system.@system[-1].linkit_firstboot)" = "1" ] && return 0
+
+echo -e "\tfollow symlinks = yes" >> /etc/samba/smb.conf.template
+sed -i "s/security = share/security = user/g" /etc/samba/smb.conf.template
+
+uci set samba.@samba[0].name=LinkIt
+uci set samba.@samba[0].description=LinkIt
+uci set samba.media=sambashare
+uci set samba.media.name='Media'
+uci set samba.media.path='/Media'
+uci set samba.media.read_only='no'
+uci set samba.media.guest_ok='yes'
+uci commit samba
