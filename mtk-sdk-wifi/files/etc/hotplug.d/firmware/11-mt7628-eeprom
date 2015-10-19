@@ -1,0 +1,26 @@
+#!/bin/sh
+
+mt7628_eeprom_extract() {
+	local part=$1
+	local offset=$2
+	local count=$3
+	local mtd
+
+	. /lib/functions.sh
+
+	mtd=$(find_mtd_part $part)
+	[ -n "$mtd" ] || \
+		rt2x00_eeprom_die "no mtd device found for partition $part"
+
+	dd if=$mtd of=/lib/firmware/$FIRMWARE bs=1 skip=$offset count=$count 2>/dev/null || \
+		rt2x00_eeprom_die "failed to extract from $mtd"
+}
+
+FW="/lib/firmware/$FIRMWARE"
+[ -e "$FW" ] && exit 0
+
+case "$FIRMWARE" in
+"mt7628.eeprom")
+	mt7628_eeprom_extract "factory" 0 512
+	;;
+esac

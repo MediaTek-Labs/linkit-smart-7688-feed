@@ -1,0 +1,6 @@
+#!/bin/sh
+
+[ -f /usr/bin/iwinfo.rt ] && mv /usr/bin/iwinfo.rt /usr/bin/iwinfo
+[ -f /lib/libiwinfo.so ] && mv /usr/lib/libiwinfo.so
+
+return 0
