@@ -33,9 +33,9 @@ uci set network.wan.proto=dhcp
 
 uci set mountd.mountd.path=/Media/
 
-uci add_list uhttpd.main.alias='/arduino=/cgi-bin/luci'
-uci add_list uhttpd.main.alias='/data=/cgi-bin/luci'
-uci add_list uhttpd.main.alias='/mailbox=/cgi-bin/luci'
+uci add_list uhttpd.main.alias='/arduino/=/cgi-bin/luci/'
+uci add_list uhttpd.main.alias='/data/=/cgi-bin/luci/'
+uci add_list uhttpd.main.alias='/mailbox/=/cgi-bin/luci/'
 
 uci commit
 return 0
