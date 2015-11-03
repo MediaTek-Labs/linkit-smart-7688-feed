@@ -16,8 +16,10 @@ uci set network.lan.ipaddr=192.168.100.1
 SSID=`fw_printenv -n wifi_ssid`
 KEY=`fw_printenv -n wifi_key`
 SEQ=`fw_printenv -n wifi_seq`
-[ -n "${SSID}" ] || \
-	SSID=LinkIt_Smart_7688
+[ -n "${SSID}" ] || { \
+	MAC=$(dd bs=1 skip=7 count=3 if=/dev/mtd2 2>/dev/null | hexdump -v -n 3 -e '2/1 "%02X_" 1/1 "%02X"')
+	SSID=LinkIt_Smart_7688_${MAC}
+}
 [ -n "${SEQ}" ] || \
 	SEQ=1
 uci set wireless.ap.ssid="$SSID"
