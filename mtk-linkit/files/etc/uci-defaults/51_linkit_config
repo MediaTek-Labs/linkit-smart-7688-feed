@@ -17,7 +17,7 @@ SSID=`fw_printenv -n wifi_ssid`
 KEY=`fw_printenv -n wifi_key`
 SEQ=`fw_printenv -n wifi_seq`
 [ -n "${SSID}" ] || { \
-	MAC=$(dd bs=1 skip=7 count=3 if=/dev/mtd2 2>/dev/null | hexdump -v -n 3 -e '2/1 "%02X_" 1/1 "%02X"')
+	MAC=$(dd bs=1 skip=7 count=3 if=/dev/mtd2 2>/dev/null | hexdump -v -n 3 -e '3/1 "%02X"')
 	SSID=LinkIt_Smart_7688_${MAC}
 }
 [ -n "${SEQ}" ] || \
