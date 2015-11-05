@@ -9,7 +9,7 @@ board=$(ramips_board_name)
 
 . /lib/functions.sh
 
-uci set system.@system[-1].hostname="myLinkIt"
+uci set system.@system[-1].hostname="mylinkIt"
 uci set wireless.radio0.disabled=0
 uci set network.lan.ipaddr=192.168.100.1
 
