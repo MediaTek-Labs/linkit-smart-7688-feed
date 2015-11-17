@@ -1,5 +1,8 @@
 #!/bin/sh
 
+uci delete uhttpd.main.alias
+uci commit uhttpd
+
 [ "$(uci get system.@system[-1].linkit_firstboot)" = "1" ] && return 0
 
 . /lib/ramips.sh
@@ -30,14 +33,14 @@ uci set wireless.ap.seq="$SEQ"
 	uci set wireless.ap.key="$KEY"
 }
 
+. /lib/functions/system.sh
+wan_mac=$(mtd_get_mac_binary factory 4)
+
 uci set network.wan=interface
 uci set network.wan.proto=dhcp
+uci set network.wan.macaddr=$wan_mac
 
 uci set mountd.mountd.path=/Media/
-
-uci add_list uhttpd.main.alias='/arduino/=/cgi-bin/luci/'
-uci add_list uhttpd.main.alias='/data/=/cgi-bin/luci/'
-uci add_list uhttpd.main.alias='/mailbox/=/cgi-bin/luci/'
 
 uci commit
 return 0

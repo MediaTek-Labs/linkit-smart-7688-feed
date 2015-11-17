@@ -1,0 +1,7 @@
+{
+	"fallback": [
+		[ "if", [ "regex", "REQUEST_URI", [ "/arduino", "/data", "/mailbox" ] ],
+			[ "rewrite", "/cgi-bin/luci%REQUEST_URI%" ]
+		]
+	]
+}

@@ -23,7 +23,8 @@ define Package/mtk_linkit
 	+kmod-nls-base +kmod-nls-cp437 +kmod-nls-iso8859-1 \
 	+kmod-nls-iso8859-15 +kmod-nls-iso8859-2 +kmod-nls-utf8 \
 	+kmod-sdhci-mt7620 +kmod-usb-storage \
-	+kmod-video-core +kmod-video-uvc +mtk_sdk_wifi
+	+kmod-video-core +kmod-video-uvc \
+	+mtk_linkit_webui +mtk_sdk_wifi
 
   CATEGORY:=Base system
   DEFAULT:=y
