@@ -5,6 +5,7 @@
 #
 
 include $(TOPDIR)/rules.mk
+include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=mtk_sdk_wifi
 PKG_VERSION:=2015-06-01
@@ -73,15 +74,20 @@ define Build/InstallDev
 endef
 
 define Package/mtk_sdk_wifi/install
-	$(INSTALL_DIR) $(1)/usr/bin
+	$(INSTALL_DIR) $(1)/usr/bin $(1)/lib/modules/$(LINUX_VERSION)/
 	$(INSTALL_DIR) $(1)/lib
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/iwinfo $(1)/usr/bin/iwinfo.rt
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/libiwinfo.so $(1)/lib/libiwinfo.so
 	
 	$(INSTALL_DIR) $(1)/sbin/
 	$(CP) $(PKG_BUILD_DIR)/ap_client $(1)/sbin/
-	$(CP) ./wifi_binary/* $(1)
+ifdef ($(CONFIG_ALL))
+	$(CP) ./wifi_binary/mt_wifi.ko_$(LINUX_VERSION)_all $(1)/lib/modules/$(LINUX_VERSION)/mt_wifi.ko
+else
+	$(CP) ./wifi_binary/mt_wifi.ko_$(LINUX_VERSION) $(1)/lib/modules/$(LINUX_VERSION)/mt_wifi.ko
+endif
 	$(CP) ./files/* $(1)
+
 endef
 
 $(eval $(call BuildPackage,mtk_sdk_wifi))
