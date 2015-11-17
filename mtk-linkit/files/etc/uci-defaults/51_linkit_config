@@ -1,5 +1,13 @@
 #!/bin/sh
 
+. /lib/functions.sh
+. /lib/functions/system.sh
+
+wan_mac=$(mtd_get_mac_binary factory 4)
+
+uci set network.wan.macaddr=$wan_mac
+uci commit network
+
 uci delete uhttpd.main.alias
 uci commit uhttpd
 
@@ -10,7 +18,6 @@ board=$(ramips_board_name)
 
 [ "$board" = "linkits7688d" ] || rm /etc/avahi/services/arduino.service
 
-. /lib/functions.sh
 
 uci set system.@system[-1].hostname="mylinkit"
 uci set wireless.radio0.disabled=0
@@ -33,12 +40,8 @@ uci set wireless.ap.seq="$SEQ"
 	uci set wireless.ap.key="$KEY"
 }
 
-. /lib/functions/system.sh
-wan_mac=$(mtd_get_mac_binary factory 4)
-
 uci set network.wan=interface
 uci set network.wan.proto=dhcp
-uci set network.wan.macaddr=$wan_mac
 
 uci set mountd.mountd.path=/Media/
 
