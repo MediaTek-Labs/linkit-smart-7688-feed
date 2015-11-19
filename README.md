@@ -21,11 +21,11 @@ Add the linkit-smart-feed by calling
 
 To get access to all of the packages availbale we must first update the feeds
 
-`./script/feeds update`
+`./scripts/feeds update`
 
 And then install all packages
 
-`./script/feeds install -a`
+`./scripts/feeds install -a`
 
 # Configure and Build
 
