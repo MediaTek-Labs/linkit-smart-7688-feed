@@ -5,9 +5,8 @@
 #
 
 include $(TOPDIR)/rules.mk
-include $(INCLUDE_DIR)/kernel.mk
 
-PKG_NAME:=mtk_linkit_webui
+PKG_NAME:=mtk-linkit-webui
 PKG_VERSION:=2015-11-18
 PKG_RELEASE=$(PKG_SOURCE_VERSION)
 
@@ -19,23 +18,25 @@ PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/mtk_linkit_webui
+define Package/mtk-linkit-webui
   TITLE:=LinkIt Smart 7688 Webui
   DEPENDS:=@TARGET_ramips_mt7688_LinkIt7688
   HIDDEN:=1
 endef
 
 define Build/Configure
+	true
 endef
 
 define Build/Compile
+	true
 endef
 
-define Package/mtk_linkit_webui/install
+define Package/mtk-linkit-webui/install
 	$(INSTALL_DIR) $(1)/www/build
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/app/build/* $(1)/www/build/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/app/zh-*.html $(1)/www/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/app/index.html $(1)/www/index_7688.html
 endef
 
-$(eval $(call BuildPackage,mtk_linkit_webui))
+$(eval $(call BuildPackage,mtk-linkit-webui))

@@ -3,12 +3,12 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=mtk_linkit
+PKG_NAME:=mtk-linkit
 PKG_RELEASE:=1
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/mtk_linkit
+define Package/mtk-linkit
   TITLE:=MTK LinkIt Smart board support package
   HIDDEN:=1
   DEPENDS:=@TARGET_ramips_mt7688_LinkIt7688 \
@@ -24,7 +24,7 @@ define Package/mtk_linkit
 	+kmod-nls-iso8859-15 +kmod-nls-iso8859-2 +kmod-nls-utf8 \
 	+kmod-sdhci-mt7620 +kmod-usb-storage \
 	+kmod-video-core +kmod-video-uvc \
-	+mtk_linkit_webui +mtk_sdk_wifi
+	+mtk-linkit-webui +mtk-sdk-wifi
 
   CATEGORY:=Base system
   DEFAULT:=y
@@ -39,7 +39,7 @@ define Build/Compile
         $(TARGET_CC) $(TARGET_CFLAGS) $(EXTRA_CFLAGS) -Wall -Werror -o $(PKG_BUILD_DIR)/refclk src/refclk.c
 endef
 
-define Package/mtk_linkit/install
+define Package/mtk-linkit/install
 	$(INSTALL_DIR) $(1)/sbin
 	
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/pinmux $(1)/sbin/mt7688_pinmux
@@ -47,4 +47,4 @@ define Package/mtk_linkit/install
 	$(CP) ./files/* $(1)
 endef
 
-$(eval $(call BuildPackage,mtk_linkit))
+$(eval $(call BuildPackage,mtk-linkit))
