@@ -1,0 +1,6 @@
+#!/bin/sh
+
+mt7688_pinmux set spi_s gpio
+
+avrdude -p m32u4 -c linuxgpio -v -e -U flash:w:/etc/arduino/Caterina-smart7688.hex -U lock:w:0x0f:m
+
