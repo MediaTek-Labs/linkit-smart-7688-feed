@@ -16,7 +16,7 @@ The following operations are performed under a Ubuntu LTS 14.04.3 environment. F
 In the Ubuntu system, open the *Terminal* application and type the following commands:
 1. Install prerequisite packages for building the firmware:
 ```
-$ sudo apt-get install git g++ libncurses5-dev subversion libssl-dev gawk libxml-parser-perl
+$ sudo apt-get install git g++ libncurses5-dev subversion libssl-dev gawk libxml-parser-perl unzip
 ```
 2. Download OpenWrt CC source codes:
 ```
