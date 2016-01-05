@@ -6,6 +6,7 @@
 
 logger "$BUTTON pressed for $SEEN seconds"
 
+# factory reset
 if [ "$SEEN" -gt 20 ]
 then
 	[ -f /tmp/.factory_reset ] && return
@@ -17,6 +18,7 @@ then
 	jffs2reset -y
 	sync
 	reboot
+# wifi reset (back to ap mode)
 elif [ "$SEEN" -gt 5 ]
 then
 	sta_disabled="$(uci get wireless.sta.disabled)"
@@ -28,6 +30,33 @@ then
 		uci set wireless.sta.disabled=1
 		uci commit wireless
 		wifi
+	fi
+# print wifi information (show mac under ap mode / ip under sta mode
+elif [ "$SEEN" -lt 1 ]
+then
+	yunbridge_disabled="$(uci get yunbridge.config.disabled)"
+	sta_disabled="$(uci get wireless.sta.disabled)"
+	uart0_state="$(mt7688_pinmux get 2>&1 | grep uart0 | awk '{print $4}')"
+	# pin is NOT in uart mode
+	if [ "$uart0_state" = "uart" ]; then
+		mt7688_pinmux set uart0 uart
+	fi
+
+	if [ "$yunbridge_disabled" = 1 ]; then
+		# ap mode. show mac
+		if [ "$sta_disabled" = 1 ]; then
+			ap_mac="$(iwinfo ra0 info | grep Access | awk '{print $3}')"
+			echo "AP MAC address: $ap_mac" > /dev/ttyS0
+		# sta mode. show ip
+		else
+			dev_ip="$(ifconfig apcli0 | grep "inet addr" | awk '{print $2}' | awk -F":" '{print $2}')"
+			echo "Device IP address: $dev_ip" > /dev/ttyS0
+		fi
+	fi
+
+	# pin is NOT in uart mode. restore to gpio mode
+	if [ "$uart0_state" = "uart" ]; then
+		mt7688_pinmux set uart0 gpio
 	fi
 fi
 
