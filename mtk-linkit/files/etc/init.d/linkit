@@ -5,12 +5,6 @@ START=10
 
 start()
 {
-	# ugly hack alert - this is required to override default feeds index
-	[ -f /etc/opkg/linkit.conf ] && {
-		cp /etc/opkg/linkit.conf /etc/opkg/distfeeds.conf
-		rm /etc/opkg/linkit.conf
-	}
-
 	# ugly hack alert - this is required to override the luci index.html file
 	[ -f /www/index_7688.html ] && {
 		cp /www/index_7688.html /www/index.html
