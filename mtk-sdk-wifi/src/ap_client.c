@@ -98,7 +98,7 @@ static void next_field(char **line, char *output, int n) {
 }
 
 #define RTPRIV_IOCTL_GSITESURVEY (SIOCIWFIRSTPRIV + 0x0D)
-static void wifi_site_survey(const char *ifname, char* essid, int print)
+static void wifi_site_survey(const char *ifname, int print)
 {
 	char *s = malloc(IW_SCAN_MAX_DATA);
 	int ret;
@@ -106,7 +106,7 @@ static void wifi_site_survey(const char *ifname, char* essid, int print)
 	struct iwreq wrq;
 	char *line, *start;
 
-	iwpriv(ifname, "SiteSurvey", (essid ? essid : ""));
+	iwpriv(ifname, "SiteSurvey", "");
 	sleep(5);
 	memset(s, 0x00, IW_SCAN_MAX_DATA);
 	strcpy(wrq.ifr_name, ifname);
@@ -154,9 +154,16 @@ out:
 	free(s);
 }
 
-static struct survey_table* wifi_find_ap(const char *name)
+static struct survey_table* wifi_find_ap(const char *name, const char *bssid)
 {
 	int i;
+
+	if (bssid && strlen(bssid)) {
+		for (i = 0; i < survey_count; i++)
+			if (!strcmp(bssid, (char*)st[i].bssid))
+				return &st[i];
+		return 0;
+	}
 
 	for (i = 0; i < survey_count; i++)
 		if (!strcmp(name, (char*)st[i].ssid))
@@ -172,7 +179,7 @@ static struct survey_table* wifi_find_ap(const char *name)
  * net/wifi_core.c from microd (but changed to call ifdown/ifup instead
  * of fiddling with interface configuration manually. */
 static void wifi_repeater_start(const char *ifname, const char *staname, const char *channel, const char *ssid,
-				const char *key, const char *enc, const char *crypto)
+				const char *bssid, const char *key, const char *enc, const char *crypto)
 {
 	char buf[100];
 	int enctype = 0;
@@ -190,10 +197,8 @@ static void wifi_repeater_start(const char *ifname, const char *staname, const c
 		iwpriv(staname, "ApCliEncrypType", "WEP");
 		iwpriv(staname, "ApCliDefaultKeyID", "1");
 		iwpriv(staname, "ApCliKey1", key);
-		iwpriv(staname, "ApCliSsid", ssid);
 	} else if (!key || key[0] == '\0') {
 		iwpriv(staname, "ApCliAuthMode", "NONE");
-		iwpriv(staname, "ApCliSsid", ssid);
 	} else {
 		return;
 	}
@@ -203,9 +208,13 @@ static void wifi_repeater_start(const char *ifname, const char *staname, const c
 			iwpriv(staname, "ApCliEncrypType", "AES");
 		else
 			iwpriv(staname, "ApCliEncrypType", "TKIP");
-		iwpriv(staname, "ApCliSsid", ssid);
 		iwpriv(staname, "ApCliWPAPSK", key);
 	}
+	if (bssid && strlen(bssid))
+		iwpriv(staname, "ApCliBssid", bssid);
+	else
+		iwpriv(staname, "ApCliBssid", "");
+	iwpriv(staname, "ApCliSsid", ssid);
 	iwpriv(staname, "ApCliEnable", "1");
 	snprintf(buf, lengthof(buf) - 1, "ifconfig '%s' up", staname);
 	system(buf);
@@ -227,7 +236,7 @@ int check_assoc(char *ifname)
 	return 0;
 }
 
-static void assoc_loop(char *ifname, char *staname, char *essid, char *pass)
+static void assoc_loop(char *ifname, char *staname, char *essid, char *pass, char *bssid, char *beacon)
 {
 	static int try_count = 0;
 	static int assoc_count = 0;
@@ -237,22 +246,24 @@ static void assoc_loop(char *ifname, char *staname, char *essid, char *pass)
 			struct survey_table *c;
 
 			led_set_trigger(1);
+			iwpriv("ra0", "Beacon", "0");
 			syslog(LOG_INFO, "%s is not associated\n", staname);
 			syslog(LOG_INFO, "Scanning for networks...\n");
-			wifi_site_survey(ifname, essid, 0);
-			c = wifi_find_ap(essid);
+			wifi_site_survey(ifname, 0);
+			c = wifi_find_ap(essid, bssid);
 			try_count++;
 			assoc_count = 0;
 			if (c) {
 				syslog(LOG_INFO, "Found network, trying to associate (essid: %s, bssid: %s, channel: %s, enc: %s, crypto: %s)\n",
-					essid, c->ssid, c->channel, c->security, c->crypto);
-				wifi_repeater_start(ifname, staname, c->channel, essid, pass, c->security, c->crypto);
+					essid, c->bssid, c->channel, c->security, c->crypto);
+				wifi_repeater_start(ifname, staname, c->channel, essid, bssid, pass, c->security, c->crypto);
 			} else {
 				syslog(LOG_INFO, "No signal found to connect to\n");
 				try_count = 0;
 			}
 		} else {
 			if (assoc_count == 0) {
+				iwpriv("ra0", "Beacon", beacon);
 				syslog(LOG_INFO, "%s is associated\n", staname);
 				led_set_trigger(0);
 			}
@@ -287,7 +298,7 @@ int main(int argc, char **argv)
 	if (argc == 3)
 		return main_led(argc, argv);
 
-	if (argc < 5)
+	if (argc < 7)
 		return -1;
 
 	daemon(0, 0);
@@ -300,12 +311,12 @@ int main(int argc, char **argv)
 
 	setbuf(stdout, NULL);
 	openlog("ap_client", 0, 0);
-	if (argc > 5)
-		led_name = argv[5];
+	if (argc > 7)
+		led_name = argv[7];
 
 	led_set_trigger(1);
 
-	assoc_loop(argv[1], argv[2], argv[3], argv[4]);
+	assoc_loop(argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
 
 	return 0;
 }

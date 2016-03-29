@@ -3,7 +3,7 @@
 LDR_VER=`grep UBOOTVER= /dev/mtd0 | cut -d= -f2`
 [ -z "${LDR_VER}" ] && LDR_VER=0.8.2
 
-uci set system.@system[0].firmware_version=v0.9.3
+uci set system.@system[0].firmware_version=v0.9.4
 uci set system.@system[0].loader_version=v${LDR_VER}
 uci set system.@system[0].linkit_firstboot=1
 uci commit system

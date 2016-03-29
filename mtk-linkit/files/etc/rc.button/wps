@@ -21,21 +21,19 @@ then
 # wifi reset (back to ap mode)
 elif [ "$SEEN" -gt 5 ]
 then
-	sta_disabled="$(uci get wireless.sta.disabled)"
-	if [ ! "$sta_disabled" = 1 ]; then
+	linkit_mode="$(uci get wireless.radio0.linkit_mode)"
+	if [ ! "$linkit_mode" = "ap" ]; then
 		echo none > /sys/class/leds/mediatek\:orange\:wifi/trigger
 		echo 1 > /sys/class/leds/mediatek\:orange\:wifi/brightness
 		sleep 1
 		echo "START WIFI AP" > /dev/console
-		uci set wireless.sta.disabled=1
-		uci commit wireless
-		wifi
+		/usr/bin/wifi_mode ap
 	fi
 # print wifi information (show mac under ap mode / ip under sta mode
 elif [ "$SEEN" -lt 1 ]
 then
 	yunbridge_disabled="$(uci get yunbridge.config.disabled)"
-	sta_disabled="$(uci get wireless.sta.disabled)"
+	linkit_mode="$(uci get wireless.radio0.linkit_mode)"
 	uart0_state="$(mt7688_pinmux get 2>&1 | grep uart0 | awk '{print $4}')"
 	# pin is NOT in uart mode
 	if [ "$uart0_state" = "uart" ]; then
@@ -44,7 +42,7 @@ then
 
 	if [ "$yunbridge_disabled" = 1 ]; then
 		# ap mode. show mac
-		if [ "$sta_disabled" = 1 ]; then
+		if [ "$linkit_mode" = "ap" ]; then
 			ap_mac="$(iwinfo ra0 info | grep Access | awk '{print $3}')"
 			echo "AP MAC address: $ap_mac" > /dev/ttyS0
 		# sta mode. show ip

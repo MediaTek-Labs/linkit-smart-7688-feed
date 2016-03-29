@@ -5,6 +5,12 @@
 
 sed -i "s/.*linkit$//g" /etc/opkg/distfeeds.conf
 
+BAUDRATE=`uci get yunbridge.config.baudrate`
+[ -n "${BAUDRATE}" ] || {
+	uci set yunbridge.config.baudrate=2500000
+	uci commit yunbridge
+}
+
 wan_mac=$(mtd_get_mac_binary factory 4)
 
 uci set network.wan.macaddr=$wan_mac
@@ -12,6 +18,12 @@ uci commit network
 
 uci delete uhttpd.main.alias
 uci commit uhttpd
+
+WMODE=`uci get  wireless.radio0.linkit_mode`
+[ -z "${WMODE}" ] && {
+	uci set wireless.radio0.linkit_mode=ap
+	uci set wireless.sta.disabled=0
+}
 
 [ "$(uci get system.@system[-1].linkit_firstboot)" = "1" ] && return 0
 

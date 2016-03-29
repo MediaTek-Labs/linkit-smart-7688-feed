@@ -1,0 +1,31 @@
+#!/bin/sh
+
+wifi down
+sleep 1
+
+case $1 in
+apsta)
+	uci set wireless.radio0.linkit_mode=apsta
+	uci set wireless.sta.network=lan
+	uci set dhcp.lan.ignore=1
+	uci set network.lan.proto=dhcp
+	uci commit
+	/etc/init.d/network restart
+	;;
+sta)
+	uci set wireless.radio0.linkit_mode=sta
+	uci set wireless.sta.network=wan
+	uci set dhcp.lan.ignore=0
+	uci set network.lan.proto=static
+	uci commit
+	/etc/init.d/network restart
+	;;
+ap)	
+	uci set wireless.radio0.linkit_mode=ap
+	uci set wireless.sta.network=wan
+	uci set dhcp.lan.ignore=0
+	uci set network.lan.proto=static
+	uci commit
+	/etc/init.d/network restart
+	;;
+esac

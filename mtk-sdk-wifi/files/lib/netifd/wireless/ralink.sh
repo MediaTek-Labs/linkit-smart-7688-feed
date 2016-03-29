@@ -6,7 +6,7 @@ maclist=""
 force_channel=""
 
 drv_ralink_init_device_config() {
-	config_add_string country variant log_level short_preamble
+	config_add_string country region variant log_level short_preamble
 	config_add_boolean noscan
 	config_add_int channel
 }
@@ -16,8 +16,8 @@ drv_ralink_init_iface_config() {
 	config_add_string auth_secret
 	config_add_int 'auth_port:port'
 
-	config_add_string ifname apname mode ssid encryption key key1 key2 key3 key4 wps_pushbutton macfilter led
-        config_add_boolean hidden isolate
+	config_add_string ifname apname mode bssid ssid encryption key key1 key2 key3 key4 wps_pushbutton macfilter led
+        config_add_boolean hidden sta_isolate
         config_add_array 'maclist:list(macaddr)'
 }
 
@@ -30,16 +30,16 @@ ralink_setup_ap(){
 	local eap=0
 
 	json_select config
-	json_get_vars mode ifname ssid encryption key key1 key2 key3 key4 wps_pushbutton server port hidden isolate macfilter
+	json_get_vars mode ifname ssid encryption key key1 key2 key3 key4 wps_pushbutton server port hidden sta_isolate macfilter
 	json_get_values maclist maclist
 
 	ifconfig $ifname up
 
 	[ -z "$force_channel" ] || iwpriv $ifname set Channel=$force_channel
-	[ "$isolate" = 1 ] || isolate=0
-	iwpriv $ifname set NoForwarding=$isolate
-	iwpriv $ifname set NoForwardingBTNBSSID=$isolate
-	iwpriv $ifname set NoForwardingMBCast=$isolate
+	[ "$sta_isolate" = 1 ] || sta_isolate=0
+	iwpriv $ifname set NoForwarding=$sta_isolate
+	iwpriv $ifname set NoForwardingBTNBSSID=$sta_isolate
+	iwpriv $ifname set NoForwardingMBCast=$sta_isolate
 	
 	[ "$hidden" = 1 ] || hidden=0
 	iwpriv $ifname set HideSSID=$hidden
@@ -127,11 +127,13 @@ ralink_setup_ap(){
 
 ralink_setup_sta(){
 	local name="$1"
-
+	local bcn_active=0
 	json_select config
-	json_get_vars mode apname ifname ssid encryption key key1 key2 key3 key4 wps_pushbutton disabled led
+	json_get_vars mode apname ifname ssid bssid encryption key key1 key2 key3 key4 wps_pushbutton led
 
-	[ "$disabled" = "1" ] && return
+	linkit_mode="$(uci get wireless.radio0.linkit_mode)"
+	[ "${linkit_mode}" = "ap" ] && return
+	[ "${linkit_mode}" == "apsta" ] && bcn_active=1
 
 	key=
 	case "$encryption" in
@@ -140,9 +142,9 @@ ralink_setup_sta(){
 	esac
 	json_select ..
 
-	/sbin/ap_client "ra0" "$ifname" "${ssid}" "${key}" "${led}"
+	/sbin/ap_client "ra0" "$ifname" "${ssid}" "${key}" "${bssid}" "${bcn_active}" "${led}"
 	sleep 1
-	wireless_add_process "$(cat /tmp/apcli-${ifname}.pid)" /sbin/ap_client ra0 "$ifname" "${ssid}" "${key}" "${led}"
+	wireless_add_process "$(cat /tmp/apcli-${ifname}.pid)" /sbin/ap_client ra0 "$ifname" "${ssid}" "${key}" "${bssid}" "${bcn_active}" "${led}"
 
 	wireless_add_vif "$name" "$ifname"
 }
@@ -156,13 +158,14 @@ drv_ralink_setup() {
 	HT=0
 	EXTCHA=0
 
-	sta_disabled="$(uci get wireless.sta.disabled)"
-
-	[ "${sta_disabled}" = "1" ] && bcn_active=1
+	linkit_mode="$(uci get wireless.radio0.linkit_mode)"
+	[ "${linkit_mode}" != "sta" ] && bcn_active=1
 
 	json_select config
-	json_get_vars variant country channel htmode log_level short_preamble noscan:0
+	json_get_vars variant region country channel htmode log_level short_preamble noscan:0
 	json_select ..
+
+	[ -z "$region" ] && region=0
 
 	[ "$short_preamble" = 1 ] || short_preamble=0 
 
@@ -222,12 +225,13 @@ Beacon=${bcn_active}
 BssidNum=4
 HT_BW=${HT:-0}
 HT_EXTCHA=${EXTCHA:-0}
+CountryRegion=${region}
 CountryCode=${country}
 WirelessMode=${wmode:-9}
 Channel=${channel:-8}
 AutoChannelSelect=$auto_channel
 Debug=${log_level:-3}
-SSID1=${ssid:-OpenWrt}
+SSID=${ssid:-OpenWrt}
 HT_BSSCoexistence=$coex
 WscConfMethods=680
 EOF
@@ -235,8 +239,8 @@ EOF
 	for_each_interface "sta" ralink_setup_sta
 	wireless_set_up
 	LED="$(uci get wireless.sta.led)"
-	sta_disabled="$(uci get wireless.sta.disabled)"
-	[ "${sta_disabled}" = "1" -a -n "${LED}" -a -f /sys/class/leds/${LED}/trigger ] && ap_client ${LED} set
+	linkit_mode="$(uci get wireless.radio0.linkit_mode)"
+	[ "${linkit_mode}" = "ap" -a -n "${LED}" -a -f /sys/class/leds/${LED}/trigger ] && ap_client ${LED} set
 }
 
 ralink_teardown() {

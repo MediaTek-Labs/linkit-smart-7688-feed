@@ -15,7 +15,7 @@
 			"cgi-io": [ "upload", ],
 			"ubus": {
 				"session": [ "grant", "logout" ],
-				"uci": [ "get", "set", "apply", "reload_config" ],
+				"uci": [ "get", "set", "apply", "reload_config", "commit" ],
 				"rpc-sys": [ "*" ],
 			},
 			"uci": [ "network", "wireless", "system" ]
