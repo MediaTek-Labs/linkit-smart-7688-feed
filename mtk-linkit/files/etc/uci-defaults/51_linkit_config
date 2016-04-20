@@ -3,6 +3,8 @@
 . /lib/functions.sh
 . /lib/functions/system.sh
 
+sed -i "s/.*linkit$//g" /etc/opkg/distfeeds.conf
+
 wan_mac=$(mtd_get_mac_binary factory 4)
 
 uci set network.wan.macaddr=$wan_mac
