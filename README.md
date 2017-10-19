@@ -1,6 +1,8 @@
 # linkit-smart-feed
 This feeds holds the SDK wifi driver and the config/meta package for the LinkIt Smart 7688 (Duo)
 
+**Note**: LinkIt Smart 7688 uses the MediaTek proprietary Wi-Fi driver. While OpenWrt Chaos Calmer is evolving, only selected Linux kernel versions of it are supported by the Wi-Fi driver (3.18.21 ~ 3.18.44). If you are looking for a non-proprietary Wi-Fi driver, the [mt76](https://github.com/openwrt/mt76) project would be a reference of the choice.
+
 # Build the firmware from sources
 
 This section describes how to build the firmware for LinkIt Smart 7688 and LinkIt Smart 7688 Duo from source codes.
